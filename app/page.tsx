@@ -1,103 +1,172 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useEffect, useState } from "react"
+import { NoteEditor } from "@/components/note-editor"
+import { NoteList } from "@/components/note-list"
+import { GraphView } from "@/components/graph-view"
+import type { Note, Connection } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PlusCircle, FileText, Network } from "lucide-react"
+
+export default function NotesApp() {
+  const [notes, setNotes] = useState<Note[]>([])
+  const [connections, setConnections] = useState<Connection[]>([])
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null)
+  const [view, setView] = useState<"editor" | "graph">("editor")
+
+  // Load notes and connections from localStorage on initial render
+  useEffect(() => {
+    const savedNotes = localStorage.getItem("notes")
+    const savedConnections = localStorage.getItem("connections")
+
+    if (savedNotes) {
+      setNotes(JSON.parse(savedNotes))
+    }
+
+    if (savedConnections) {
+      setConnections(JSON.parse(savedConnections))
+    }
+  }, [])
+
+  // Save notes and connections to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("notes", JSON.stringify(notes))
+  }, [notes])
+
+  useEffect(() => {
+    localStorage.setItem("connections", JSON.stringify(connections))
+  }, [connections])
+
+  const activeNote = notes.find((note) => note.id === activeNoteId) || null
+
+  const createNewNote = () => {
+    const newNote: Note = {
+      id: Date.now().toString(),
+      title: "Untitled Note",
+      content: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    setNotes([...notes, newNote])
+    setActiveNoteId(newNote.id)
+    setView("editor")
+  }
+
+  const updateNote = (updatedNote: Note) => {
+    setNotes(
+      notes.map((note) =>
+        note.id === updatedNote.id ? { ...updatedNote, updatedAt: new Date().toISOString() } : note,
+      ),
+    )
+  }
+
+  const deleteNote = (id: string) => {
+    setNotes(notes.filter((note) => note.id !== id))
+    setConnections(connections.filter((conn) => conn.sourceId !== id && conn.targetId !== id))
+
+    if (activeNoteId === id) {
+      setActiveNoteId(notes.length > 1 ? notes[0].id : null)
+    }
+  }
+
+  const createConnection = (sourceId: string, targetId: string) => {
+    // Prevent duplicate connections and self-connections
+    if (
+      sourceId === targetId ||
+      connections.some(
+        (conn) =>
+          (conn.sourceId === sourceId && conn.targetId === targetId) ||
+          (conn.sourceId === targetId && conn.targetId === sourceId),
+      )
+    ) {
+      return
+    }
+
+    const newConnection: Connection = {
+      id: `${sourceId}-${targetId}`,
+      sourceId,
+      targetId,
+    }
+
+    setConnections([...connections, newConnection])
+  }
+
+  const deleteConnection = (id: string) => {
+    setConnections(connections.filter((conn) => conn.id !== id))
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <div className="w-64 border-r p-4 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">Notes</h1>
+          <Button size="sm" onClick={createNewNote}>
+            <PlusCircle className="h-4 w-4 mr-1" />
+            New
+          </Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <NoteList
+          notes={notes}
+          activeNoteId={activeNoteId}
+          onSelectNote={(id) => {
+            setActiveNoteId(id)
+            setView("editor")
+          }}
+          onDeleteNote={deleteNote}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="border-b p-2">
+          <Tabs value={view} onValueChange={(v) => setView(v as "editor" | "graph")}>
+            <TabsList>
+              <TabsTrigger value="editor">
+                <FileText className="h-4 w-4 mr-1" />
+                Editor
+              </TabsTrigger>
+              <TabsTrigger value="graph">
+                <Network className="h-4 w-4 mr-1" />
+                Graph View
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          {view === "editor" ? (
+            activeNote ? (
+              <NoteEditor
+                note={activeNote}
+                allNotes={notes}
+                onUpdateNote={updateNote}
+                onCreateConnection={createConnection}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <div className="text-center">
+                  <p>No note selected</p>
+                  <Button variant="outline" className="mt-2" onClick={createNewNote}>
+                    Create a new note
+                  </Button>
+                </div>
+              </div>
+            )
+          ) : (
+            <GraphView
+              notes={notes}
+              connections={connections}
+              activeNoteId={activeNoteId}
+              onSelectNote={setActiveNoteId}
+              onDeleteConnection={deleteConnection}
+            />
+          )}
+        </div>
+      </div>
     </div>
-  );
+  )
 }

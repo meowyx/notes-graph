@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Notes Graph
+
+A simple and intuitive note-taking application with a visual graph interface for connecting related notes.
+
+![Notes Graph Demo](notes-graph.gif)
+
+## Features
+
+- Create and edit notes with markdown support
+- Visual graph interface to connect related notes
+- Real-time preview of note content
+- Wiki-style linking between notes using `[[Note Title]]` syntax
+- Interactive graph visualization with force-directed layout
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
+3. Run the development server:
+   ```bash
+   bun dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Project Structure
+
+```
+notes-graph/
+├── app/                    # Next.js app directory
+│   ├── page.tsx           # Main page component
+│   └── layout.tsx         # Root layout
+├── components/            # React components
+│   ├── note-editor.tsx    # Note editing interface
+│   ├── graph-view.tsx     # Interactive graph visualization
+│   └── ui/               # Reusable UI components
+├── lib/                   # Utility functions and types
+│   ├── types.ts          # TypeScript type definitions
+│   └── utils.ts          # Helper functions
+└── public/               # Static assets
+    └── notes-graph.gif   # Demo animation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Component Architecture
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Note Editor (`components/note-editor.tsx`)
+- Handles note creation and editing
+- Implements markdown preview with syntax highlighting
+- Manages wiki-style links between notes
+- Uses `marked` for markdown parsing and `DOMPurify` for sanitization
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Graph View (`components/graph-view.tsx`)
+- Renders an interactive force-directed graph
+- Visualizes note connections
+- Implements node dragging and zooming
+- Uses HTML Canvas for performance
 
-## Learn More
+### Types (`lib/types.ts`)
+- Defines core data structures:
+  - `Note`: Represents a single note with title, content, and ID
+  - `Connection`: Represents links between notes
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- Bun (Runtime & Package Manager)
+- Marked (Markdown parsing)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
