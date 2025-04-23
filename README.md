@@ -2,7 +2,7 @@
 
 A simple and intuitive note-taking application with a visual graph interface for connecting related notes.
 
-![Notes Graph Demo](notes-graph.gif)
+![Notes Graph Demo](graph-note2.gif)
 
 ## Features
 
